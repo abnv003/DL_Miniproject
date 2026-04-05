@@ -366,5 +366,69 @@
         "Mark": 14.0,
         "Link": "face_absence_20260405_084449.jpg",
         "RId": 7
+    },
+    {
+        "Name": "Prohibited Shorcuts () are detected.",
+        "Time": "0 Counts",
+        "Duration": "",
+        "Mark": 0.0,
+        "Link": "",
+        "RId": 8
+    },
+    {
+        "Name": "Multiple Faces Detected",
+        "Time": "2026-04-05 18:00:30",
+        "Duration": "3 seconds",
+        "Mark": 6.0,
+        "Link": "multiple_faces_20260405_180030.jpg",
+        "RId": 8
+    },
+    {
+        "Name": "Prohibited Shorcuts (Ctrl+C,Ctrl+V,Alt+Tab) are detected.",
+        "Time": "6 Counts",
+        "Duration": "",
+        "Mark": 9.0,
+        "Link": "",
+        "RId": 9
+    },
+    {
+        "Name": "Face Absence Detected",
+        "Time": "2026-04-05 18:06:22",
+        "Duration": "3 seconds",
+        "Mark": 6.0,
+        "Link": "face_absence_20260405_180622.jpg",
+        "RId": 9
+    },
+    {
+        "Name": "Background Voice / Noise Detected",
+        "Time": "2026-04-05 18:06:21",
+        "Duration": "4 seconds",
+        "Mark": 6.0,
+        "Link": "",
+        "RId": 9
+    },
+    {
+        "Name": "Mobile Phone Detected",
+        "Time": "2026-04-05 18:06:34",
+        "Duration": "3 seconds",
+        "Mark": 9.0,
+        "Link": "mobile_phone_20260405_180634.jpg",
+        "RId": 9
+    },
+    {
+        "Name": "Face Absence Detected",
+        "Time": "2026-04-05 18:06:40",
+        "Duration": "3 seconds",
+        "Mark": 6.0,
+        "Link": "face_absence_20260405_180640.jpg",
+        "RId": 9
+    },
+    {
+        "Name": "Background Voice / Noise Detected",
+        "Time": "2026-04-05 18:06:45",
+        "Duration": "3 seconds",
+        "Mark": 4.5,
+        "Link": "",
+        "RId": 9
     }
 ]
