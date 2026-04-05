@@ -1,0 +1,13 @@
+Flask
+Flask-MySQLdb
+mysqlclient
+numpy
+opencv-python
+mediapipe
+keyboard
+PyAutoGUI
+PyGetWindow
+pyperclip
+ultralytics
+PyAudio
+face-recognition
