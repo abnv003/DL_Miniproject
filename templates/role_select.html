@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Portal Selection</title>
+	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/login.css')}}">
+	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/all.min.css')}}">
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body class="auth-shell">
+	<div class="orb orb-a"></div>
+	<div class="orb orb-b"></div>
+	<div class="container auth-layout">
+		<div class="img hero-panel">
+			<div class="hero-copy">
+				<p class="eyebrow">Remote Integrity Suite</p>
+				<h1>Advanced interview monitoring with dedicated user journeys.</h1>
+				<p class="hero-text">Choose a portal and continue into a role-specific flow designed for candidates and reviewers.</p>
+				<div class="hero-metrics">
+					<div class="metric-card">
+						<span>Visual Checks</span>
+						<strong>Face, phone, attention</strong>
+					</div>
+					<div class="metric-card">
+						<span>Audio Checks</span>
+						<strong>Background voice alerts</strong>
+					</div>
+				</div>
+			</div>
+			<img src="{{url_for('static', filename='img/bg.png')}}" class="hero-illustration">
+		</div>
+		<div class="login-content">
+			<div class="portal-card glass-card">
+				<img src="{{url_for('static', filename='img/avatar.svg')}}" class="card-avatar">
+				<p class="eyebrow">Entry Point</p>
+				<h2 class="title">Choose Portal</h2>
+				<p class="auth-link auth-copy">Select the correct login flow for your role.</p>
+				<a href="{{ url_for('student_login') }}" class="btn portal-btn">
+					<span>Student Portal</span>
+					<small>Face capture, system checks, interview flow</small>
+				</a>
+				<a href="{{ url_for('admin_login') }}" class="btn portal-btn portal-btn-secondary">
+					<span>Admin Portal</span>
+					<small>Review evidence, trust scores, activity logs</small>
+				</a>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

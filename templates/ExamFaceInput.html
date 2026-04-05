@@ -1,7 +1,5 @@
-
 <!DOCTYPE html>
 <html lang="en" title="System Check">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +7,6 @@
     <title>Exam Face Input</title>
     <link rel="stylesheet" href="{{url_for('static', filename='css/FaceInput.css')}}">
 </head>
-
 <body>
     <nav>
       <div class="left-links">
@@ -30,16 +27,33 @@
             </div>
         </section>
         <section class="table__body">
-                <div>
-                   <img src="{{ url_for('video_capture') }}" width="100%" class="host-img">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <p class="camera-flash">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            <div id="cameraShell" class="camera-shell">
+                <video id="cameraPreview" autoplay playsinline muted class="host-img camera-preview"></video>
+                <canvas id="captureCanvas" width="640" height="480" style="display: none;"></canvas>
+                <div id="cameraGuide" class="camera-guide">
+                    <div class="guide-corners tl"></div>
+                    <div class="guide-corners tr"></div>
+                    <div class="guide-corners bl"></div>
+                    <div class="guide-corners br"></div>
+                    <div class="guide-label">Align face here</div>
                 </div>
+            </div>
+            <p id="cameraStatus" class="camera-status">Requesting camera access...</p>
         </section>
         <section class="section-button">
             <p class="table__text">Make ensure that your face is properly positioned within the green rectangle box before capturing the photograph. </p>
         <section class="section-button">
-        <div class="nextButton">
-        <a href="{{ url_for('saveFaceInput') }}" class="next" >Save Image</a>
-      </div>
+        <div class="nextButton" style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+            <button id="retakeBtn" class="next" type="button">Refresh Camera</button>
+            <button id="saveBtn" class="next" type="button">Save Image</button>
+        </div>
       </section>
     </main>
     <footer>
@@ -51,6 +65,99 @@
       </footer>
 
     </div>
-</body>
+    <script>
+        const video = document.getElementById('cameraPreview');
+        const canvas = document.getElementById('captureCanvas');
+        const statusText = document.getElementById('cameraStatus');
+        const saveBtn = document.getElementById('saveBtn');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const cameraShell = document.getElementById('cameraShell');
+        const cameraGuide = document.getElementById('cameraGuide');
+        let mediaStream = null;
 
+        async function startCamera() {
+            statusText.textContent = 'Requesting camera access...';
+            saveBtn.disabled = true;
+
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+            }
+
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'user'
+                    },
+                    audio: false
+                });
+                video.srcObject = mediaStream;
+                await video.play();
+                statusText.textContent = 'Camera ready. Keep your face inside the frame, then save.';
+                saveBtn.disabled = false;
+            } catch (error) {
+                statusText.textContent = 'Camera access failed. Allow camera permission and close other apps using the webcam.';
+            }
+        }
+
+        async function saveImage() {
+            if (!mediaStream || video.videoWidth === 0 || video.videoHeight === 0) {
+                statusText.textContent = 'Camera is not ready yet.';
+                return;
+            }
+
+            const shellRect = cameraShell.getBoundingClientRect();
+            const shellWidth = shellRect.width;
+            const shellHeight = shellRect.height;
+
+            const videoWidth = video.videoWidth;
+            const videoHeight = video.videoHeight;
+            const scale = Math.max(shellWidth / videoWidth, shellHeight / videoHeight);
+            const renderedWidth = videoWidth * scale;
+            const renderedHeight = videoHeight * scale;
+            const offsetX = (renderedWidth - shellWidth) / 2;
+            const offsetY = (renderedHeight - shellHeight) / 2;
+
+            const sourceX = Math.max(0, offsetX / scale);
+            const sourceY = Math.max(0, offsetY / scale);
+            const sourceWidth = Math.min(videoWidth - sourceX, shellWidth / scale);
+            const sourceHeight = Math.min(videoHeight - sourceY, shellHeight / scale);
+
+            canvas.width = 720;
+            canvas.height = 900;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, canvas.width, canvas.height);
+            const image = canvas.toDataURL('image/jpeg', 0.92);
+
+            saveBtn.disabled = true;
+            statusText.textContent = 'Saving image...';
+
+            try {
+                const response = await fetch('{{ url_for("saveFaceInput") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.ok) {
+                    throw new Error(result.message || 'Failed to save image.');
+                }
+                window.location.href = result.next;
+            } catch (error) {
+                statusText.textContent = error.message || 'Failed to save image.';
+                saveBtn.disabled = false;
+            }
+        }
+
+        retakeBtn.addEventListener('click', startCamera);
+        saveBtn.addEventListener('click', saveImage);
+        window.addEventListener('load', startCamera);
+        window.addEventListener('beforeunload', () => {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+            }
+        });
+    </script>
+</body>
 </html>

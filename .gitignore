@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+
+# Runtime recordings generated during exam sessions
+*.mp4
+
+# Runtime outputs
+static/Profiles/
+static/ViolationImages/

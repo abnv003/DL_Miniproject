@@ -44,7 +44,15 @@ The features included in the project are as follows:
 ## Getting Started
 - First, you need to clone the repo: `https://github.com/aungkhantmyat/The-Online-Exam-Proctor.git`
 - Run the `requirement.txt` file for the installation.
+- Start a MySQL server and create/update connection settings with the values in `.env.example`.
+- If the schema is not present yet, run `init_db.sql` on your MySQL server.
 - Run the `app.py` file.
+
+### Database
+- Default database name: `examproctordb`
+- Default bootstrap admin user: `admin@example.com`
+- Default bootstrap admin password: `admin123`
+- Health check endpoint: `/health/db`
 
 ![fff](https://github.com/aungkhantmyat/The-Online-Exam-Proctor/assets/48421405/4721d814-7557-453e-8dc8-c792e229f937)
 

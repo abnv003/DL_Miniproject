@@ -30,6 +30,25 @@
                         <div class="col-md-1"></div>
 
                         <div class="col-md-10">
+                            <div class="alert alert-light border mb-4" id="monitorPanel">
+                                <div class="row align-items-center">
+                                    <div class="col-md-5 text-center">
+                                        <video id="monitorVideo" autoplay playsinline muted style="width: 100%; max-height: 220px; background: #111; border-radius: 12px;"></video>
+                                        <canvas id="monitorCanvas" width="640" height="480" style="display:none;"></canvas>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <h5 style="color: #5f9ea0;">Integrity Monitoring</h5>
+                                        <p class="mb-2" id="monitorStatus">Camera is idle until the quiz starts.</p>
+                                        <ul class="mb-0" style="padding-left: 18px;">
+                                            <li id="monitorFace">Face: waiting</li>
+                                            <li id="monitorPeople">People: waiting</li>
+                                            <li id="monitorPose">Attention: waiting</li>
+                                            <li id="monitorPhone">Phone: waiting</li>
+                                            <li id="monitorAudio">Audio: waiting</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div id="mainContent">
 
@@ -67,6 +86,7 @@
 
     <script src="{{url_for('static', filename='js/questions.js')}}"></script>
     <script src="{{url_for('static', filename='js/script.js')}}"></script>
+    <script src="{{url_for('static', filename='js/exam_monitor.js')}}"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
     </body>

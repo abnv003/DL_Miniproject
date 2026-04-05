@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Admin Login</title>
+	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/login.css')}}">
+	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/all.min.css')}}">
+	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+	<script src="https://kit.fontawesome.com/a81368914c.js"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body class="auth-shell">
+	<div class="orb orb-a"></div>
+	<div class="orb orb-b"></div>
+	<div class="container auth-layout">
+		<div class="img hero-panel">
+			<div class="hero-copy">
+				<p class="eyebrow">Reviewer Access</p>
+				<h1>Audit candidate sessions with evidence-rich dashboards.</h1>
+				<p class="hero-text">Admins can review trust scores, images, audio evidence, and violation timelines from a dedicated workspace.</p>
+			</div>
+			<img src="{{url_for('static', filename='img/bg.png')}}" class="hero-illustration">
+		</div>
+		<div class="login-content">
+			<form action="{{url_for('login')}}" method="post" class="glass-card">
+				<input type="hidden" name="expected_role" value="ADMIN">
+				<img src="{{url_for('static', filename='img/avatar.svg')}}" class="card-avatar">
+				<p class="eyebrow">Admin Portal</p>
+				<h2 class="title">Admin Login</h2>
+				<p class="auth-copy">Use the reviewer account to inspect candidate activity and evidence from completed sessions.</p>
+           		<div class="input-div one">
+           		   <div class="i">
+           		   		<i class="fas fa-user-shield"></i>
+           		   </div>
+           		   <div class="div">
+           		   		<h5>Email</h5>
+           		   		<input type="text" class="input" name="username" id="username" required>
+           		   </div>
+           		</div>
+           		<div class="input-div pass">
+           		   <div class="i">
+           		    	<i class="fas fa-lock"></i>
+           		   </div>
+           		   <div class="div">
+           		    	<h5>Password</h5>
+           		    	<input type="password" class="input" name="password" id="password" required>
+            	   </div>
+            	</div>
+				<br>
+				{% with messages = get_flashed_messages() %}
+					{% if messages %}
+						{% for message in messages %}
+				<h6 class="flash">{{ message }}</h6>
+						{% endfor %}
+					{% endif %}
+				{% endwith %}
+
+            	<input type="submit" class="btn" value="Login">
+				<p class="auth-link">Default admin: <strong>admin@example.com</strong></p>
+				<p class="auth-link">Password: <strong>admin123</strong></p>
+				<p class="auth-link"><a href="{{ url_for('main') }}">Back to portal selection</a></p>
+            </form>
+        </div>
+    </div>
+    <script type="text/javascript" src="{{url_for('static', filename='js/login.js')}}"></script>
+</body>
+</html>

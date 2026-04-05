@@ -104,6 +104,27 @@
 							<li><span>Total Score : </span>{{ resultDetials['Result'][0]['TotalMark'] }}% </li>
 						</ul>
 					</div>
+					<div class="review-summary">
+						<div class="summary-card">
+							<p class="summary-label">Total Violations</p>
+							<h3>{{ resultDetials['Violation']|length }}</h3>
+						</div>
+						<div class="summary-card">
+							<p class="summary-label">Image Evidence</p>
+							<h3>{{ resultDetials['Violation']|selectattr('Link')|select('string')|select('search', '.jpg')|list|length + resultDetials['Violation']|selectattr('Link')|select('string')|select('search', '.jpeg')|list|length + resultDetials['Violation']|selectattr('Link')|select('string')|select('search', '.png')|list|length }}</h3>
+						</div>
+						<div class="summary-card">
+							<p class="summary-label">Audio Evidence</p>
+							<h3>{{ resultDetials['Violation']|selectattr('Link')|select('string')|select('search', '.wav')|list|length }}</h3>
+						</div>
+					</div>
+					{% if resultDetials['Violation']|length %}
+					<div class="event-badges">
+						{% for violation in resultDetials['Violation']|groupby('Name') %}
+						<span class="event-badge">{{ violation.grouper }}: {{ violation.list|length }}</span>
+						{% endfor %}
+					</div>
+					{% endif %}
 					<h4 style="margin-top: 30px;">Violation Records</h4>
 					<table>
 						<thead>
@@ -111,6 +132,7 @@
 								<th>Name</th>
 								<th>Time</th>
 								<th>Duration</th>
+								<th>Evidence</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -126,11 +148,16 @@
 								<td>{{ violation['Duration'] }}</td>
 								<td>
 									{% set Type = violation['Link'].split('.') %}
-									{% if Type[1] == 'mp4' %}
+									{% if Type|length > 1 and Type[1] == 'mp4' %}
 									{% set VideoInfo = violation['Link']~ ';' ~ resultDetials['Result'][0]['Id']  %}
 									<a href="{{ url_for('adminResultDetailsVideo', videoInfo= VideoInfo) }}" >Video Link</a>
-									{% elif Type[1] == 'wav' %}
+									{% elif Type|length > 1 and Type[1] == 'wav' %}
 									<a href="#" name="{{ violation['Link'] }}" onclick="playAudio(name)">Audio Link</a>
+									{% elif Type|length > 1 and (Type[1] == 'jpg' or Type[1] == 'jpeg' or Type[1] == 'png') %}
+									<a href="{{ url_for('static', filename='ViolationImages/') }}{{ violation['Link'] }}" target="_blank" class="evidence-thumb-link">
+										<img src="{{ url_for('static', filename='ViolationImages/') }}{{ violation['Link'] }}" alt="Violation evidence" class="evidence-thumb">
+										<span>Open Image</span>
+									</a>
 									{% else %}
 									<a href="#"></a>
 									{% endif %}

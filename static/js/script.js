@@ -138,6 +138,9 @@ function viewResult(){
                     success: function(response) {
                         console.log(response);
                         console.log(response['output']);
+                        if (window.examMonitor) {
+                            window.examMonitor.stop();
+                        }
 
                         // Redirect to result.html on success
                         window.location.href = "/"+response['link']+"/".concat(response['output']);
@@ -197,6 +200,9 @@ $(document).ready(function() {
                     contentType: "application/json",
                     data: JSON.stringify({input:''}),
                     success: function(response) {
+                        if (window.examMonitor) {
+                            window.examMonitor.start();
+                        }
                         startQuiz();
                     },
                     error: function(xhr, status, error) {

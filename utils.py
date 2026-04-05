@@ -1,5 +1,9 @@
 import sys
-import face_recognition
+try:
+    import face_recognition
+except ImportError:
+    print("Warning: face_recognition module not found, using stub implementation")
+    import face_recognition_stub as face_recognition
 from concurrent.futures import ThreadPoolExecutor
 import cv2
 import mediapipe as mp
@@ -37,23 +41,34 @@ capb= cv2.VideoCapture(0)
 width= int(capb.get(cv2.CAP_PROP_FRAME_WIDTH))
 height= int(capb.get(cv2.CAP_PROP_FRAME_HEIGHT))
 capb.release()
-capa = cv2.VideoCapture("test_V.mp4")
+test_video_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_V.mp4")
+capa = cv2.VideoCapture(test_video_path)
 EDWidth=int(capa.get(cv2.CAP_PROP_FRAME_WIDTH))
 EDHeight=int(capa.get(cv2.CAP_PROP_FRAME_HEIGHT))
 capa.release()
 video = [(str(random.randint(1,50000))+".mp4"), (str(random.randint(1,50000))+".mp4"), (str(random.randint(1,50000))+".mp4"), (str(random.randint(1,50000))+".mp4"), (str(random.randint(1,50000))+".mp4")]
 writer = [cv2.VideoWriter(video[0], cv2.VideoWriter_fourcc(*'mp4v'), 20, (width,height)), cv2.VideoWriter(video[1], cv2.VideoWriter_fourcc(*'mp4v'), 20, (width,height)), cv2.VideoWriter(video[2], cv2.VideoWriter_fourcc(*'mp4v'), 20, (width,height)), cv2.VideoWriter(video[3], cv2.VideoWriter_fourcc(*'mp4v'), 15, (1920, 1080)), cv2.VideoWriter(video[4], cv2.VideoWriter_fourcc(*'mp4v'), 20 , (EDWidth,EDHeight))]
 #More than One Person Related
-mpFaceDetection = mp.solutions.face_detection  # Detect the face
-mpDraw = mp.solutions.drawing_utils  # Draw the required Things for BBox
-faceDetection = mpFaceDetection.FaceDetection(0.75)# It has 0 to 1 (Change this to make it more detectable) Default is 0.5 and higher means more detection.
+try:
+    mpFaceDetection = mp.solutions.face_detection  # Detect the face
+    mpDraw = mp.solutions.drawing_utils  # Draw the required Things for BBox
+    faceDetection = mpFaceDetection.FaceDetection(0.75)# It has 0 to 1 (Change this to make it more detectable) Default is 0.5 and higher means more detection.
+except Exception as e:
+    print(f"Warning: MediaPipe initialization failed: {e}")
+    print("MediaPipe features will not be available")
+    mpFaceDetection = None
+    mpDraw = None
+    faceDetection = None
 #Screen Related
 shorcuts = []
 active_window = None # Store the initial active window and its title
 active_window_title = "Exam — Mozilla Firefox"
 exam_window_title = active_window_title
 #ED Related
-my_file = open("utils/coco.txt", "r") # opening the file in read mode
+# Build the file path relative to this script's directory
+script_dir = os.path.dirname(os.path.abspath(__file__))
+coco_file_path = os.path.join(script_dir, "utils", "coco.txt")
+my_file = open(coco_file_path, "r") # opening the file in read mode
 data = my_file.read() # reading the file
 class_list = data.split("\n") # replacing end splitting the text | when newline ('\n') is seen.
 my_file.close()
@@ -64,7 +79,8 @@ for i in range(len(class_list)):
     g = random.randint(0, 255)
     b = random.randint(0, 255)
     detection_colors.append((b, g, r))
-model = YOLO("yolov8n.pt", "v8") # load a pretrained YOLOv8n model
+yolo_model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "yolov8n.pt")
+model = YOLO(yolo_model_path, "v8") # load a pretrained YOLOv8n model
 EDFlag = False
 #Voice Related
 TRIGGER_RMS = 10  # start recording above 10
@@ -79,7 +95,8 @@ SHORT_WIDTH = 2
 CHUNK = int(RATE * FRAME_SECS)
 CUSHION_FRAMES = int(CUSHION_SECS / FRAME_SECS)
 TIMEOUT_FRAMES = int(TIMEOUT_SECS / FRAME_SECS)
-f_name_directory = 'C:/Users/kaungmyat/PycharmProjects/BestOnlineExamProctor/static/OuputAudios'
+script_dir = os.path.dirname(os.path.abspath(__file__))
+f_name_directory = os.path.join(script_dir, 'static', 'OuputAudios')
 # Capture
 cap = None
 
@@ -87,7 +104,9 @@ cap = None
 #Database and Files Related
 # function to add data to JSON
 def write_json(new_data, filename='violation.json'):
-    with open(filename,'r+') as file:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    filepath = os.path.join(script_dir, filename)
+    with open(filepath,'r+') as file:
         # First we load existing data into a dict.
         file_data = json.load(file)
         # Join new_data with file_data inside emp_details
@@ -99,12 +118,14 @@ def write_json(new_data, filename='violation.json'):
 
 #Function to move the files to the Output Folders
 def move_file_to_output_folder(file_name,folder_name='OutputVideos'):
-    # Get the current working directory (project folder)
-    current_directory = os.getcwd()
+    # Get the script directory (project folder)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
     # Define the paths for the source file and destination folder
-    source_path = os.path.join(current_directory, file_name)
-    destination_path = os.path.join(current_directory, 'static', folder_name, file_name)
+    source_path = os.path.join(script_dir, file_name)
+    destination_path = os.path.join(script_dir, 'static', folder_name, file_name)
     try:
+        # Create destination folder if it doesn't exist
+        os.makedirs(os.path.dirname(destination_path), exist_ok=True)
         # Use 'shutil.move' to move the file to the destination folder
         shutil.move(source_path, destination_path)
         print('Your video is moved to'+folder_name)
@@ -415,11 +436,25 @@ class FaceRecognition:
         self.encode_faces()
 
     def encode_faces(self):
-        for image in os.listdir('static/Profiles'):
-            face_image = face_recognition.load_image_file(f"static/Profiles/{image}")
-            face_encoding = face_recognition.face_encodings(face_image)[0]
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        profiles_path = os.path.join(script_dir, "static", "Profiles")
+        self.known_face_encodings = []
+        self.known_face_names = []
+        
+        # Create directory if it doesn't exist
+        if not os.path.exists(profiles_path):
+            os.makedirs(profiles_path, exist_ok=True)
+            print(f"Created profiles directory: {profiles_path}")
+        
+        for image in os.listdir(profiles_path):
+            image_path = os.path.join(profiles_path, image)
+            face_image = face_recognition.load_image_file(image_path)
+            encodings = face_recognition.face_encodings(face_image)
+            if encodings is None or len(encodings) == 0:
+                print(f"Skipping profile without a detectable face: {image}")
+                continue
 
-            self.known_face_encodings.append(face_encoding)
+            self.known_face_encodings.append(encodings[0])
             self.known_face_names.append(image)
         print(self.known_face_names)
 
@@ -451,12 +486,18 @@ class FaceRecognition:
                 self.face_names = []
                 for face_encoding in self.face_encodings:
                     # See if the face is a match for the known face(s)
+                    if not self.known_face_encodings:
+                        self.face_names.append('Unknown (No registered faces)')
+                        continue
                     matches = face_recognition.compare_faces(self.known_face_encodings, face_encoding)
                     name = "Unknown"
                     confidence = '???'
 
                     # Calculate the shortest distance to face
                     face_distances = face_recognition.face_distance(self.known_face_encodings, face_encoding)
+                    if len(face_distances) == 0:
+                        self.face_names.append('Unknown (No registered faces)')
+                        continue
 
                     best_match_index = np.argmin(face_distances)
                     if matches[best_match_index]:
@@ -882,7 +923,9 @@ def cheat_Detection2():
 #Query Related
 #Function to give the next resut id
 def get_resultId():
-    with open('result.json','r+') as file:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    result_file = os.path.join(script_dir, 'result.json')
+    with open(result_file,'r+') as file:
         # First we load existing data into a dict.
         file_data = json.load(file)
         #sort json by ID
@@ -891,7 +934,9 @@ def get_resultId():
 
 #Function to give the trust score
 def get_TrustScore(Rid):
-    with open('violation.json', 'r+') as file:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    violation_file = os.path.join(script_dir, 'violation.json')
+    with open(violation_file, 'r+') as file:
         # First we load existing data into a dict.
         file_data = json.load(file)
         filtered_data = [item for item in file_data if item["RId"] == Rid]
@@ -900,18 +945,23 @@ def get_TrustScore(Rid):
 
 #Function to give all results
 def getResults():
-    with open('result.json', 'r+') as file:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    result_file = os.path.join(script_dir, 'result.json')
+    with open(result_file, 'r+') as file:
         # First we load existing data into a dict.
         result_data = json.load(file)
         return result_data
 
 #Function to give result details
 def getResultDetails(rid):
-    with open('result.json', 'r+') as file:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    result_file = os.path.join(script_dir, 'result.json')
+    violation_file = os.path.join(script_dir, 'violation.json')
+    with open(result_file, 'r+') as file:
         # First we load existing data into a dict.
         result_data = json.load(file)
         filtered_result = [item for item in result_data if item["Id"] == int(rid)]
-    with open('violation.json', 'r+') as file:
+    with open(violation_file, 'r+') as file:
         # First we load existing data into a dict.
         violation_data = json.load(file)
         filtered_violations = [item for item in violation_data if item["RId"] == int(rid)]

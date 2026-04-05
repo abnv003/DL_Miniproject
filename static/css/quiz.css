@@ -1,41 +1,193 @@
 body{
-    background: #e2e2e2;
+    background:
+        radial-gradient(circle at top left, rgba(223,168,66,0.18), transparent 24%),
+        radial-gradient(circle at right top, rgba(25,120,118,0.18), transparent 28%),
+        linear-gradient(180deg, #f6f0e7 0%, #eef4f3 100%);
+    color: #193338;
+    min-height: 100vh;
 }
+
 header{
-    background: #5f9ea0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
+
 header nav{
-    position : fixed;
-    overflow : hidden;
+    background: rgba(22, 71, 74, 0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 18px 28px !important;
+    box-shadow: 0 16px 40px rgba(17,51,58,0.15);
 }
+
 header nav span{
-    font-size: 17px;
-    font-weight : bold;
-    color: white;
-    margin-left: 30px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff4eb;
+    letter-spacing: 0.03em;
 }
+
+#timer{
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.12);
+}
+
+main{
+    padding-bottom: 100px;
+}
+
+.container{
+    max-width: 1180px;
+}
+
 .card{
-    border-radius: 2em;
-    box-shadow: 0 5px 10px #5f9ea0
+    border-radius: 32px;
+    border: 1px solid rgba(25,51,56,0.08);
+    box-shadow: 0 26px 60px rgba(18,60,67,0.14);
+    overflow: hidden;
 }
+
 .card-body{
-    background:#F5F5F5;border-radius: 1em
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: blur(20px);
+    padding: 36px 40px;
 }
+
+.card-title{
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.line{
+    border-top: 1px solid rgba(25,51,56,0.09);
+    margin: 22px 0 28px;
+}
+
+#monitorPanel{
+    border-radius: 28px !important;
+    background: linear-gradient(145deg, rgba(23,77,81,0.96), rgba(17,52,56,0.96)) !important;
+    color: #f7f6f3;
+    border: none !important;
+    box-shadow: 0 24px 48px rgba(16,52,57,0.22);
+    padding: 24px 26px;
+}
+
+#monitorPanel h5{
+    color: #fff4eb !important;
+    font-size: 1.35rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+#monitorStatus{
+    color: rgba(255,255,255,0.74);
+    line-height: 1.7;
+}
+
+#monitorPanel ul{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
+    gap: 10px 18px;
+    margin-top: 18px !important;
+    padding-left: 0 !important;
+    list-style: none;
+}
+
+#monitorPanel li{
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.06);
+    font-size: 0.95rem;
+}
+
+#monitorVideo{
+    border-radius: 20px !important;
+    border: 2px solid rgba(255,255,255,0.12);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.22);
+}
+
+#mainContent{
+    background: linear-gradient(180deg, rgba(243,248,247,0.9), rgba(255,255,255,0.88));
+    border: 1px solid rgba(24,51,56,0.07);
+    border-radius: 24px;
+    padding: 28px 24px;
+}
+
+#mainContent h5{
+    color: #486368;
+    line-height: 1.8;
+    max-width: 720px;
+    margin: 0 auto 18px;
+}
+
+#quizContent{
+    display: grid;
+    gap: 14px;
+}
+
+#quizContent .btn{
+    width: 100%;
+    text-align: left;
+    padding: 16px 20px;
+    border-radius: 18px;
+    border: 1px solid rgba(27,127,121,0.08);
+    background: linear-gradient(135deg, #1b7f79, #2da79e) !important;
+    box-shadow: 0 16px 28px rgba(27,127,121,0.16);
+    font-weight: 700;
+}
+
+#quizContent .btn:hover,
+#startQuiz:hover,
+#completeTest .btn:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 22px 34px rgba(27,127,121,0.2);
+}
+
+#startQuiz,
+#completeTest .btn{
+    border: none !important;
+    min-width: 220px;
+    padding: 14px 22px;
+    border-radius: 18px;
+    box-shadow: 0 16px 28px rgba(27,127,121,0.18);
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+
+#title.text-left{
+    text-align: left !important;
+    color: #16383d !important;
+    margin-bottom: 16px;
+}
+
+#answer{
+    min-height: 20px;
+}
+
 footer {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      font-align:center;
-      text-align: center;
-      padding-top: 12px;
-      margin: auto;
-      font-size: 2.5vmin;
-      font-weight: bold;
-      background-color: #5f9ea0;
-      color: black;
+    width: calc(100% - 48px);
+    max-width: 1180px;
+    margin: 28px auto 0;
+    text-align: center;
+    padding: 16px 20px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #36575d;
+    background: rgba(255,255,255,0.72);
+    border: 1px solid rgba(25,51,56,0.08);
+    border-radius: 20px;
+    box-shadow: 0 16px 32px rgba(18,60,67,0.08);
 }
 
+@media screen and (max-width: 991px){
+    .card-body{
+        padding: 28px 20px;
+    }
 
-
-
-
+    #monitorPanel ul{
+        grid-template-columns: 1fr;
+    }
+}
