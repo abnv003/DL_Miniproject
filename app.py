@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, jsonify, session,redirect,url
 import os
 import base64
 from flask_mysqldb import MySQL
+import MySQLdb
 from MySQLdb import OperationalError
 from MySQLdb._exceptions import IntegrityError
 import json
@@ -70,14 +71,27 @@ def bootstrap_database():
     app_connection = None
     app_cursor = None
     try:
-        create_db_connection = mysql.connect
+        create_db_connection = MySQLdb.connect(
+            host=app.config['MYSQL_HOST'],
+            user=app.config['MYSQL_USER'],
+            passwd=app.config['MYSQL_PASSWORD'],
+            port=app.config['MYSQL_PORT'],
+            charset='utf8mb4'
+        )
         create_db_cursor = create_db_connection.cursor()
         create_db_cursor.execute(
             f"CREATE DATABASE IF NOT EXISTS `{app.config['MYSQL_DB']}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
         )
         create_db_connection.commit()
 
-        app_connection = mysql.connection
+        app_connection = MySQLdb.connect(
+            host=app.config['MYSQL_HOST'],
+            user=app.config['MYSQL_USER'],
+            passwd=app.config['MYSQL_PASSWORD'],
+            db=app.config['MYSQL_DB'],
+            port=app.config['MYSQL_PORT'],
+            charset='utf8mb4'
+        )
         app_cursor = app_connection.cursor()
         app_cursor.execute(
             """
@@ -90,15 +104,24 @@ def bootstrap_database():
             )
             """
         )
-        app_cursor.execute("SELECT COUNT(*) FROM students WHERE Role = 'ADMIN'")
-        admin_count = app_cursor.fetchone()[0]
-        if admin_count == 0:
+        app_cursor.execute("SELECT ID FROM students WHERE Email = %s", ('admin@example.com',))
+        admin_row = app_cursor.fetchone()
+        if admin_row is None:
             app_cursor.execute(
                 """
                 INSERT INTO students (Name, Email, Password, Role)
                 VALUES (%s, %s, %s, %s)
                 """,
                 ('Admin', 'admin@example.com', 'admin123', 'ADMIN')
+            )
+        else:
+            app_cursor.execute(
+                """
+                UPDATE students
+                SET Name=%s, Password=%s, Role=%s
+                WHERE Email=%s
+                """,
+                ('Admin', 'admin123', 'ADMIN', 'admin@example.com')
             )
         app_connection.commit()
         db_error_message = None
@@ -142,6 +165,23 @@ def open_camera(camera_index=0):
         except Exception:
             pass
     return None
+
+
+def get_db_connection():
+    return MySQLdb.connect(
+        host=app.config['MYSQL_HOST'],
+        user=app.config['MYSQL_USER'],
+        passwd=app.config['MYSQL_PASSWORD'],
+        db=app.config['MYSQL_DB'],
+        port=app.config['MYSQL_PORT'],
+        charset='utf8mb4'
+    )
+
+
+def normalize_email(value):
+    if value is None:
+        return ''
+    return value.strip().lower()
 
 
 def render_status_frame(message):
@@ -388,27 +428,39 @@ def login():
         flash(db_error_message, category='error')
         return redirect(url_for('main'))
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = normalize_email(request.form['username'])
+        password = request.form['password'].strip()
         expected_role = request.form.get('expected_role', '').upper()
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM students WHERE Email=%s AND Password=%s", (username, password))
-        data = cur.fetchone()
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute("SELECT * FROM students WHERE Email=%s", (username,))
+            data = cur.fetchone()
+        finally:
+            cur.close()
+            conn.close()
         if data is None:
-            flash('Your Email or Password is incorrect, try again.', category='error')
+            flash('This email is not registered. Please sign up first.', category='error')
             if expected_role == 'ADMIN':
                 return redirect(url_for('admin_login'))
             if expected_role == 'STUDENT':
                 return redirect(url_for('student_login'))
             return redirect(url_for('main'))
         else:
-            id, name, email,password, role = data
+            id, name, email, stored_password, role = data
+            if stored_password != password:
+                flash('Incorrect password. Please try again.', category='error')
+                if expected_role == 'ADMIN':
+                    return redirect(url_for('admin_login'))
+                if expected_role == 'STUDENT':
+                    return redirect(url_for('student_login'))
+                return redirect(url_for('main'))
             if expected_role and role != expected_role:
                 flash(f'This account belongs to the {role.lower()} portal.', category='error')
                 if expected_role == 'ADMIN':
                     return redirect(url_for('admin_login'))
                 return redirect(url_for('student_login'))
-            studentInfo={ "Id": id, "Name": name, "Email": email, "Password": password}
+            studentInfo={ "Id": id, "Name": name, "Email": email, "Password": stored_password}
             if role == 'STUDENT':
                 utils.Student_Name = name
                 return redirect(url_for('rules'))
@@ -427,25 +479,27 @@ def signup():
 def signup_post():
     if db_error_message:
         return db_error_message, 500
-    name = request.form['name']
-    email = request.form['email']
-    password = request.form['password']
+    name = request.form['name'].strip()
+    email = normalize_email(request.form['email'])
+    password = request.form['password'].strip()
 
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     try:
         cur.execute(
             "INSERT INTO students (Name, Email, Password, Role) VALUES (%s, %s, %s, %s)",
             (name, email, password, 'STUDENT')
         )
-        mysql.connection.commit()
+        conn.commit()
         flash('Account created. You can log in now.', category='success')
         return redirect(url_for('main'))
     except IntegrityError:
-        mysql.connection.rollback()
+        conn.rollback()
         flash('That email is already registered.', category='error')
         return redirect(url_for('signup'))
     finally:
         cur.close()
+        conn.close()
 
 @app.route('/logout')
 def logout():
@@ -622,10 +676,14 @@ def adminResultDetailsVideo(videoInfo):
 def adminStudents():
     if db_error_message:
         return db_error_message, 500
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM students where Role='STUDENT'")
-    data = cur.fetchall()
-    cur.close()
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT * FROM students where Role='STUDENT'")
+        data = cur.fetchall()
+    finally:
+        cur.close()
+        conn.close()
     return render_template('Students.html', students=data)
 
 @app.route('/insertStudent', methods=['POST'])
@@ -633,12 +691,17 @@ def insertStudent():
     if db_error_message:
         return db_error_message, 500
     if request.method == "POST":
-        name = request.form['username']
-        email = request.form['email']
+        name = request.form['username'].strip()
+        email = normalize_email(request.form['email'])
         password = request.form['password']
-        cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO students (Name, Email, Password, Role) VALUES (%s, %s, %s, %s)", (name, email, password,'STUDENT'))
-        mysql.connection.commit()
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute("INSERT INTO students (Name, Email, Password, Role) VALUES (%s, %s, %s, %s)", (name, email, password,'STUDENT'))
+            conn.commit()
+        finally:
+            cur.close()
+            conn.close()
         return redirect(url_for('adminStudents'))
 
 @app.route('/deleteStudent/<string:stdId>', methods=['GET'])
@@ -646,9 +709,14 @@ def deleteStudent(stdId):
     if db_error_message:
         return db_error_message, 500
     flash("Record Has Been Deleted Successfully")
-    cur = mysql.connection.cursor()
-    cur.execute("DELETE FROM students WHERE ID=%s", (stdId,))
-    mysql.connection.commit()
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("DELETE FROM students WHERE ID=%s", (stdId,))
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
     return redirect(url_for('adminStudents'))
 
 @app.route('/updateStudent', methods=['POST', 'GET'])
@@ -657,16 +725,21 @@ def updateStudent():
         return db_error_message, 500
     if request.method == 'POST':
         id_data = request.form['id']
-        name = request.form['name']
-        email = request.form['email']
+        name = request.form['name'].strip()
+        email = normalize_email(request.form['email'])
         password = request.form['password']
-        cur = mysql.connection.cursor()
-        cur.execute("""
-               UPDATE students
-               SET Name=%s, Email=%s, Password=%s
-               WHERE ID=%s
-            """, (name, email, password, id_data))
-        mysql.connection.commit()
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute("""
+                   UPDATE students
+                   SET Name=%s, Email=%s, Password=%s
+                   WHERE ID=%s
+                """, (name, email, password, id_data))
+            conn.commit()
+        finally:
+            cur.close()
+            conn.close()
         return redirect(url_for('adminStudents'))
 
 
@@ -675,10 +748,14 @@ def health_db():
     if db_error_message:
         return jsonify({"ok": False, "message": db_error_message}), 500
     try:
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT 1")
-        cur.fetchone()
-        cur.close()
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute("SELECT 1")
+            cur.fetchone()
+        finally:
+            cur.close()
+            conn.close()
         return jsonify({
             "ok": True,
             "host": app.config['MYSQL_HOST'],

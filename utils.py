@@ -950,6 +950,14 @@ def getResults():
     with open(result_file, 'r+') as file:
         # First we load existing data into a dict.
         result_data = json.load(file)
+        def sort_key(item):
+            raw_date = str(item.get("Date", "")).strip()
+            try:
+                parsed = datetime.datetime.strptime(raw_date, "%Y-%m-%d")
+            except Exception:
+                parsed = datetime.datetime.min
+            return (parsed, item.get("Id", 0))
+        result_data.sort(key=sort_key, reverse=True)
         return result_data
 
 #Function to give result details

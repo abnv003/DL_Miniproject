@@ -430,5 +430,29 @@
         "Mark": 4.5,
         "Link": "",
         "RId": 9
+    },
+    {
+        "Name": "Prohibited Shorcuts () are detected.",
+        "Time": "0 Counts",
+        "Duration": "",
+        "Mark": 0.0,
+        "Link": "",
+        "RId": 10
+    },
+    {
+        "Name": "Multiple Faces Detected",
+        "Time": "2026-04-07 12:12:06",
+        "Duration": "3 seconds",
+        "Mark": 6.0,
+        "Link": "multiple_faces_20260407_121206.jpg",
+        "RId": 10
+    },
+    {
+        "Name": "Multiple Faces Detected",
+        "Time": "2026-04-07 12:12:22",
+        "Duration": "3 seconds",
+        "Mark": 6.0,
+        "Link": "multiple_faces_20260407_121222.jpg",
+        "RId": 10
     }
 ]
